@@ -69,6 +69,46 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
+func write() {
+	// ctx := context.Background()
+
+	b, err := ioutil.ReadFile("./credentials.json")
+	// b, err := ioutil.ReadFile("./client_secret.json")
+	if err != nil {
+		log.Fatalf("Unable to read client secret file: %v", err)
+	}
+
+	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+	client := getClient(config)
+
+	srv, err := sheets.New(client)
+	if err != nil {
+		log.Fatalf("Unable to retrieve Sheets Client %v", err)
+	}
+
+	spreadsheetId := "13Zta9Pf7QpnVvQS0dW0t0o6Fe6l5mX1qGgx-fOxOIbg"
+
+	writeRange := "A1"
+
+	var vr sheets.ValueRange
+
+	myval := []interface{}{"One", "Two", "Three"}
+	vr.Values = append(vr.Values, myval)
+
+	_, err = srv.Spreadsheets.Values.Append(spreadsheetId, writeRange, &vr).ValueInputOption("RAW").Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve data from sheet. %v", err)
+	}
+	// _, err = srv.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("RAW").Do()
+	// if err != nil {
+	// 	log.Fatalf("Unable to retrieve data from sheet. %v", err)
+	// }
+
+}
+
 func main() {
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
@@ -76,7 +116,7 @@ func main() {
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets.readonly")
+	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
@@ -105,4 +145,7 @@ func main() {
 			fmt.Printf("%s, %s\n", row[0], row[4])
 		}
 	}
+
+	write()
+
 }
